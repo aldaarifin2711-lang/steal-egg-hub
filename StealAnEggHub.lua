@@ -1,12 +1,11 @@
 --[[
-    Project: Steal an Egg / Brainrot - Ultimate Pro Hub (Bypass Edition)
+    Project: Steal an Egg / Brainrot - Ultimate Pro Hub (Secure & Perfect Edition)
     Library Base: Rayfield UI
     Compatibility: Solara, Xeno, Fluxus, Delta
 ]]--
 
 -- ================= ANTI-CHEAT BYPASS & HOOK PROTECTION ================= --
 pcall(function()
-    -- Melindungi GUI dari deteksi core game jika didukung executor
     local coreGui = game:GetService("CoreGui")
     if coreGui:FindFirstChild("Rayfield") then
         coreGui.Rayfield.Parent = gethui and gethui() or coreGui
@@ -45,7 +44,6 @@ local Config = {
     AutoSteal = false,
     StealArea = "All",
     StealRarity = "All",
-    StealSize = "All",
     AutoPlacePen = false,
     AutoTreadmill = false,
     WalkSpeed = 16,
@@ -54,36 +52,47 @@ local Config = {
     -- Egg Management
     AutoHatch = false,
     AutoSellEggs = false,
-    PlaceBestPets = false,
     EggESP = false,
     
     -- Pet Management
     AutoSellPets = false,
     SellDelay = 500,
-    AutoEquipGear = false,
-    AutoEquipTrail = false,
     
     -- Misc & Performance
-    ClaimRewards = false,
     ServerHop = false,
     DeleteOtherPlayers = false,
-    DeleteRadius = 50,
-    KillVFX = false,
-    MaxFPS = false
+    KillVFX = false
 }
 
 -- Session Watcher Stats
 local SessionData = {
     StartTime = tick(),
-    EggsStolen = 0,
-    EstimatedIncome = 0
+    EggsStolen = 0
 }
+
+-- ================= SAFE MOVEMENT (ANTI-DETECTION) ================= --
+local function SmoothMove(targetCFrame)
+    pcall(function()
+        local character = LocalPlayer.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local hrp = character.HumanoidRootPart
+            local distance = (hrp.Position - targetCFrame.Position).Magnitude
+            local speed = 45 -- Kecepatan gerak aman agar tidak dideteksi speed/teleport hack
+            local timeTaken = distance / speed
+            
+            local tweenInfo = TweenInfo.new(timeTaken, Enum.EasingStyle.Linear)
+            local tween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
+            tween:Play()
+            task.wait(timeTaken + 0.1)
+        end
+    end)
+end
 
 -- ================= LOAD RAYFIELD UI LIBRARY ================= --
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:Window({
-    Name = "⚡ Steal an Egg Hub v1.0 | Bypass Edition",
+    Name = "⚡ Steal an Egg Hub v1.0 | Perfect Pro Edition",
     LoadingTitle = "Initializing Secure Hub...",
     LoadingSubtitle = "by Expert Developer",
     ConfigurationSaving = {
@@ -116,12 +125,13 @@ local TabPet = Window:CreateTab("Pet Management", 4483362458)
 local TabPen = Window:CreateTab("Pen & Training", 4483362458)
 local TabMisc = Window:CreateTab("Rewards & Misc", 4483362458)
 local TabConfig = Window:CreateTab("Config & Data", 4483362458)
+local TabAutoExec = Window:CreateTab("Auto Execute", 4483362458)
 
 -- ================= TAB 1: MAIN / AUTO FARM ================= --
-TabMain:CreateSection("Automation Farming")
+TabMain:CreateSection("Automation Farming (Bypass Protected)")
 
 TabMain:CreateToggle({
-    Name = "Auto Steal Egg (Safe Delay)",
+    Name = "Auto Steal Egg (Smooth Move)",
     CurrentValue = false,
     Flag = "AutoSteal",
     Callback = function(Value)
@@ -132,16 +142,13 @@ TabMain:CreateToggle({
                     for _, obj in pairs(Workspace:GetDescendants()) do
                         if not Config.AutoSteal then break end
                         if obj:IsA("BasePart") and string.find(string.lower(obj.Name), "egg") then
-                            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                                -- Jarak aman perpindahan agar tidak terdeteksi anti-cheat instan
-                                LocalPlayer.Character.HumanoidRootPart.CFrame = obj.CFrame + Vector3.new(0, 3, 0)
-                                SessionData.EggsStolen = SessionData.EggsStolen + 1
-                                task.wait(0.8) -- Jeda diperlambat untuk keamanan bypass
-                            end
+                            SmoothMove(obj.CFrame + Vector3.new(0, 3, 0))
+                            SessionData.EggsStolen = SessionData.EggsStolen + 1
+                            task.wait(1)
                         end
                     end
                 end)
-                task.wait(1.5)
+                task.wait(2)
             end
         end)
     end,
@@ -151,7 +158,6 @@ TabMain:CreateDropdown({
     Name = "Filter Area",
     Options = {"All", "Area 1", "Area 2", "Area 3", "Volcano", "Cyber"},
     CurrentOption = "All",
-    Flag = "FilterArea",
     Callback = function(Option)
         Config.StealArea = Option
     end,
@@ -160,7 +166,6 @@ TabMain:CreateDropdown({
 TabMain:CreateToggle({
     Name = "Auto Place to Pen",
     CurrentValue = false,
-    Flag = "AutoPlacePen",
     Callback = function(Value)
         Config.AutoPlacePen = Value
     end,
@@ -169,7 +174,6 @@ TabMain:CreateToggle({
 TabMain:CreateToggle({
     Name = "Auto Treadmill",
     CurrentValue = false,
-    Flag = "AutoTreadmill",
     Callback = function(Value)
         Config.AutoTreadmill = Value
     end,
@@ -179,10 +183,9 @@ TabMain:CreateSection("Player Modifiers")
 
 TabMain:CreateSlider({
     Name = "WalkSpeed Controller",
-    Range = {16, 100}, -- Batas wajar agar aman dari anti-cheat speed
+    Range = {16, 80}, -- Batas aman anti-ban
     Increment = 1,
     CurrentValue = 16,
-    Flag = "WalkSpeed",
     Callback = function(Value)
         Config.WalkSpeed = Value
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -193,10 +196,9 @@ TabMain:CreateSlider({
 
 TabMain:CreateSlider({
     Name = "JumpPower Controller",
-    Range = {50, 150}, -- Batas wajar
+    Range = {50, 120}, -- Batas aman anti-ban
     Increment = 5,
     CurrentValue = 50,
-    Flag = "JumpPower",
     Callback = function(Value)
         Config.JumpPower = Value
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -224,7 +226,6 @@ TabEgg:CreateSection("Egg Controls & ESP")
 TabEgg:CreateToggle({
     Name = "Auto Hatch Ready Eggs",
     CurrentValue = false,
-    Flag = "AutoHatch",
     Callback = function(Value)
         Config.AutoHatch = Value
         task.spawn(function()
@@ -245,7 +246,6 @@ TabEgg:CreateToggle({
 TabEgg:CreateToggle({
     Name = "Egg ESP (Highlight + Distance)",
     CurrentValue = false,
-    Flag = "EggESP",
     Callback = function(Value)
         Config.EggESP = Value
         if Value then
@@ -451,7 +451,6 @@ TabConfig:CreateButton({
 })
 
 -- ================= TAB 7: AUTO EXECUTE ================= --
-local TabAutoExec = Window:CreateTab("Auto Execute", 4483362458)
 TabAutoExec:CreateSection("Auto-Load Configuration")
 
 TabAutoExec:CreateToggle({
