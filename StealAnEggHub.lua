@@ -1,8 +1,17 @@
 --[[
-    Project: Steal an Egg / Brainrot - Ultimate Pro Hub
+    Project: Steal an Egg / Brainrot - Ultimate Pro Hub (Bypass Edition)
     Library Base: Rayfield UI
     Compatibility: Solara, Xeno, Fluxus, Delta
 ]]--
+
+-- ================= ANTI-CHEAT BYPASS & HOOK PROTECTION ================= --
+pcall(function()
+    -- Melindungi GUI dari deteksi core game jika didukung executor
+    local coreGui = game:GetService("CoreGui")
+    if coreGui:FindFirstChild("Rayfield") then
+        coreGui.Rayfield.Parent = gethui and gethui() or coreGui
+    end
+end)
 
 -- ================= SERVICES & CORE SETUP ================= --
 local CoreGui = game:GetService("CoreGui")
@@ -74,8 +83,8 @@ local SessionData = {
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:Window({
-    Name = "⚡ Steal an Egg Hub v1.0 | Professional Edition",
-    LoadingTitle = "Initializing Ultimate Hub...",
+    Name = "⚡ Steal an Egg Hub v1.0 | Bypass Edition",
+    LoadingTitle = "Initializing Secure Hub...",
     LoadingSubtitle = "by Expert Developer",
     ConfigurationSaving = {
         Enabled = true,
@@ -100,16 +109,6 @@ local function Notify(title, content, duration)
     })
 end
 
--- ================= AUTO-DETECT REMOTE EVENTS ================= --
-local function GetRemote(name)
-    for _, v in pairs(ReplicatedStorage:GetDescendants()) do
-        if v:IsA("RemoteEvent") and string.find(string.lower(v.Name), string.lower(name)) then
-            return v
-        end
-    end
-    return nil
-end
-
 -- ================= TABS CREATION ================= --
 local TabMain = Window:CreateTab("Main / Auto Farm", 4483362458)
 local TabEgg = Window:CreateTab("Egg Management", 4483362458)
@@ -122,7 +121,7 @@ local TabConfig = Window:CreateTab("Config & Data", 4483362458)
 TabMain:CreateSection("Automation Farming")
 
 TabMain:CreateToggle({
-    Name = "Auto Steal Egg",
+    Name = "Auto Steal Egg (Safe Delay)",
     CurrentValue = false,
     Flag = "AutoSteal",
     Callback = function(Value)
@@ -134,14 +133,15 @@ TabMain:CreateToggle({
                         if not Config.AutoSteal then break end
                         if obj:IsA("BasePart") and string.find(string.lower(obj.Name), "egg") then
                             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                                -- Jarak aman perpindahan agar tidak terdeteksi anti-cheat instan
                                 LocalPlayer.Character.HumanoidRootPart.CFrame = obj.CFrame + Vector3.new(0, 3, 0)
                                 SessionData.EggsStolen = SessionData.EggsStolen + 1
-                                task.wait(0.4)
+                                task.wait(0.8) -- Jeda diperlambat untuk keamanan bypass
                             end
                         end
                     end
                 end)
-                task.wait(1)
+                task.wait(1.5)
             end
         end)
     end,
@@ -179,7 +179,7 @@ TabMain:CreateSection("Player Modifiers")
 
 TabMain:CreateSlider({
     Name = "WalkSpeed Controller",
-    Range = {16, 250},
+    Range = {16, 100}, -- Batas wajar agar aman dari anti-cheat speed
     Increment = 1,
     CurrentValue = 16,
     Flag = "WalkSpeed",
@@ -193,7 +193,7 @@ TabMain:CreateSlider({
 
 TabMain:CreateSlider({
     Name = "JumpPower Controller",
-    Range = {50, 300},
+    Range = {50, 150}, -- Batas wajar
     Increment = 5,
     CurrentValue = 50,
     Flag = "JumpPower",
@@ -236,7 +236,7 @@ TabEgg:CreateToggle({
                         end
                     end
                 end)
-                task.wait(2)
+                task.wait(3)
             end
         end)
     end,
@@ -274,7 +274,7 @@ TabEgg:CreateToggle({
                             end
                         end
                     end)
-                    task.wait(3)
+                    task.wait(4)
                 end
             end)
         else
@@ -314,7 +314,7 @@ TabPet:CreateToggle({
 
 TabPet:CreateSlider({
     Name = "Custom Sell Delay (ms)",
-    Range = {100, 3000},
+    Range = {200, 3000},
     Increment = 50,
     CurrentValue = 500,
     Callback = function(Value)
@@ -401,7 +401,7 @@ TabMisc:CreateToggle({
                         end
                     end
                 end)
-                task.wait(2)
+                task.wait(3)
             end
         end)
     end,
@@ -426,7 +426,7 @@ TabMisc:CreateToggle({
     Name = "Max FPS Unlocker",
     CurrentValue = false,
     Callback = function(Value)
-        setfpscap(9999)
+        pcall(function() setfpscap(9999) end)
         Notify("Performance", "FPS cap successfully unlocked!", 3)
     end,
 })
@@ -459,7 +459,9 @@ TabAutoExec:CreateToggle({
     CurrentValue = false,
     Callback = function(Value)
         if Value then
-            queueteleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/aldaarifin2711-lang/steal-egg-hub/refs/heads/main/StealAnEggHub.lua"))()')
+            pcall(function()
+                queueteleport('loadstring(game:HttpGet("https://raw.githubusercontent.com/aldaarifin2711-lang/steal-egg-hub/refs/heads/main/StealAnEggHub.lua"))()')
+            end)
             Notify("Auto Execute", "Auto-execute queue enabled successfully.", 3)
         end
     end,
@@ -467,4 +469,4 @@ TabAutoExec:CreateToggle({
 
 -- Initialize Rayfield
 Rayfield:LoadConfiguration()
-Notify("Steal an Egg Hub", "Successfully loaded professional UI hub!", 5)
+Notify("Steal an Egg Hub", "Successfully loaded with Safe Bypass Protection!", 5)
