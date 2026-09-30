@@ -1,16 +1,8 @@
 --[[
-    Project: Steal an Egg / Brainrot - Ultimate Pro Hub (Secure & Perfect Edition)
+    Project: Steal an Egg / Brainrot - Ultimate Pro Hub (Complete Edition)
     Library Base: Rayfield UI
     Compatibility: Solara, Xeno, Fluxus, Delta
 ]]--
-
--- ================= ANTI-CHEAT BYPASS & HOOK PROTECTION ================= --
-pcall(function()
-    local coreGui = game:GetService("CoreGui")
-    if coreGui:FindFirstChild("Rayfield") then
-        coreGui.Rayfield.Parent = gethui and gethui() or coreGui
-    end
-end)
 
 -- ================= SERVICES & CORE SETUP ================= --
 local CoreGui = game:GetService("CoreGui")
@@ -51,7 +43,6 @@ local Config = {
     
     -- Egg Management
     AutoHatch = false,
-    AutoSellEggs = false,
     EggESP = false,
     
     -- Pet Management
@@ -70,20 +61,26 @@ local SessionData = {
     EggsStolen = 0
 }
 
--- ================= SAFE MOVEMENT (ANTI-DETECTION) ================= --
-local function SmoothMove(targetCFrame)
+-- ================= SAFE WALKING MOVEMENT (ANTI-BAN) ================= --
+local function SafeWalkTo(targetPosition)
     pcall(function()
         local character = LocalPlayer.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            local hrp = character.HumanoidRootPart
-            local distance = (hrp.Position - targetCFrame.Position).Magnitude
-            local speed = 45 -- Kecepatan gerak aman agar tidak dideteksi speed/teleport hack
-            local timeTaken = distance / speed
+        if character and character:FindFirstChild("Humanoid") and character:FindFirstChild("HumanoidRootPart") then
+            local humanoid = character.Humanoid
+            humanoid:MoveTo(targetPosition)
+            local connection
+            local reached = false
+            connection = humanoid.MoveToFinished:Connect(function(isReached)
+                reached = true
+                if connection then connection:Disconnect() end
+            end)
             
-            local tweenInfo = TweenInfo.new(timeTaken, Enum.EasingStyle.Linear)
-            local tween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
-            tween:Play()
-            task.wait(timeTaken + 0.1)
+            local startTime = tick()
+            while not reached and (tick() - startTime) < 4 do
+                if not Config.AutoSteal and not Config.AutoTreadmill then break end
+                task.wait(0.2)
+            end
+            if connection then connection:Disconnect() end
         end
     end)
 end
@@ -92,13 +89,13 @@ end
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:Window({
-    Name = "⚡ Steal an Egg Hub v1.0 | Perfect Pro Edition",
-    LoadingTitle = "Initializing Secure Hub...",
+    Name = "⚡ Steal an Egg Hub v1.0 | Complete Pro Edition",
+    LoadingTitle = "Initializing Complete Hub...",
     LoadingSubtitle = "by Expert Developer",
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "StealEggHubConfigs",
-        FileName = "MainConfig"
+        FileName = "CompleteConfig"
     },
     Discord = {
         Enabled = false,
@@ -128,10 +125,10 @@ local TabConfig = Window:CreateTab("Config & Data", 4483362458)
 local TabAutoExec = Window:CreateTab("Auto Execute", 4483362458)
 
 -- ================= TAB 1: MAIN / AUTO FARM ================= --
-TabMain:CreateSection("Automation Farming (Bypass Protected)")
+TabMain:CreateSection("Automation Farming (Safe Walk)")
 
 TabMain:CreateToggle({
-    Name = "Auto Steal Egg (Smooth Move)",
+    Name = "Auto Steal Egg",
     CurrentValue = false,
     Flag = "AutoSteal",
     Callback = function(Value)
@@ -142,9 +139,9 @@ TabMain:CreateToggle({
                     for _, obj in pairs(Workspace:GetDescendants()) do
                         if not Config.AutoSteal then break end
                         if obj:IsA("BasePart") and string.find(string.lower(obj.Name), "egg") then
-                            SmoothMove(obj.CFrame + Vector3.new(0, 3, 0))
+                            SafeWalkTo(obj.Position)
                             SessionData.EggsStolen = SessionData.EggsStolen + 1
-                            task.wait(1)
+                            task.wait(1.5)
                         end
                     end
                 end)
@@ -183,7 +180,7 @@ TabMain:CreateSection("Player Modifiers")
 
 TabMain:CreateSlider({
     Name = "WalkSpeed Controller",
-    Range = {16, 80}, -- Batas aman anti-ban
+    Range = {16, 50},
     Increment = 1,
     CurrentValue = 16,
     Callback = function(Value)
@@ -196,7 +193,7 @@ TabMain:CreateSlider({
 
 TabMain:CreateSlider({
     Name = "JumpPower Controller",
-    Range = {50, 120}, -- Batas aman anti-ban
+    Range = {50, 100},
     Increment = 5,
     CurrentValue = 50,
     Callback = function(Value)
@@ -468,4 +465,4 @@ TabAutoExec:CreateToggle({
 
 -- Initialize Rayfield
 Rayfield:LoadConfiguration()
-Notify("Steal an Egg Hub", "Successfully loaded with Safe Bypass Protection!", 5)
+Notify("Steal an Egg Hub", "Successfully loaded Complete Pro Version!", 5)
